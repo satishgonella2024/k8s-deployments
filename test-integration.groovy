@@ -5,7 +5,7 @@ pipeline {
     
     environment {
         SONAR_PROJECT_KEY = "test-project"
-        K8S_NAMESPACE = "devsecops"
+        K8S_NAMESPACE = "k8s-deployments"
         K8S_MANIFEST_PATH = "manifests"
         K8S_DEPLOYMENTS_PATH = "deployments"
         K8S_SERVICES_PATH = "services"
