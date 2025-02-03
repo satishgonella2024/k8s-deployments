@@ -17,7 +17,7 @@ pipeline {
 
     environment {
         KUBERNETES_SERVER = "https://kubernetes.default.svc.cluster.local"
-        KUBERNETES_TOKEN = credentials('KUBERNETES_TOKEN')
+        KUBERNETES_TOKEN = credentials('k8s-jenkins-token')
         K8S_NAMESPACE = "k8s-deployments"
     }
 
