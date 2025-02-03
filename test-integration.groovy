@@ -110,11 +110,31 @@ pipeline {
         }
         
         stage('Report') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        metadata:
+                          name: jenkins-agent-report
+                          namespace: k8s-deployments
+                        spec:
+                          containers:
+                          - name: kubectl
+                            image: lachlanevenson/k8s-kubectl:latest
+                            command:
+                            - cat
+                            tty: true
+                    '''
+                }
+            }
             steps {
-                sh '''
-                    echo "Deployment Report:"
-                    kubectl get all -n ${K8S_NAMESPACE}
-                '''
+                container('kubectl') { // Ensure we use the correct container
+                    sh '''
+                        echo "Deployment Report:"
+                        kubectl get all -n ${K8S_NAMESPACE}
+                    '''
+                }
             }
         }
     }
