@@ -66,7 +66,7 @@ pipeline {
                         kind: Pod
                         metadata:
                           name: jenkins-agent
-                          namespace: devsecops
+                          namespace: k8s-deployments
                         spec:
                           serviceAccountName: jenkins-sa
                           containers:
