@@ -1,14 +1,26 @@
 pipeline {
     agent {
-        label 'jenkins-agent'
+        kubernetes {
+            yaml '''
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: kubectl
+                image: bitnami/kubectl:latest
+                command:
+                - cat
+                tty: true
+            '''
+        }
     }
-    
+
     environment {
-        SONAR_PROJECT_KEY = "test-project"
-        DOCKER_IMAGE = "sample-app"
-        DOCKER_TAG = "latest"
+        KUBERNETES_SERVER = "https://kubernetes.default.svc.cluster.local"
+        KUBERNETES_TOKEN = credentials('KUBERNETES_TOKEN')
+        K8S_NAMESPACE = "k8s-deployments"
     }
-    
+
     stages {
         stage('Deploy to Kubernetes') {
             steps {
