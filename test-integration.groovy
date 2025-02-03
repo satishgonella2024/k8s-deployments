@@ -64,7 +64,11 @@ pipeline {
                     yaml '''
                         apiVersion: v1
                         kind: Pod
+                        metadata:
+                          name: jenkins-agent
+                          namespace: devsecops
                         spec:
+                          serviceAccountName: jenkins-sa
                           containers:
                           - name: kubectl
                             image: lachlanevenson/k8s-kubectl:latest
