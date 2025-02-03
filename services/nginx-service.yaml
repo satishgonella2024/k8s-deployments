@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: k8s-deployments
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80      # Internal service port
+      targetPort: 80
+      nodePort: 30080  # Exposed on all nodes
+  type: LoadBalancer
