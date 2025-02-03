@@ -116,15 +116,23 @@ pipeline {
                         apiVersion: v1
                         kind: Pod
                         metadata:
-                          name: jenkins-agent-report
+                          name: jenkins-agent
                           namespace: k8s-deployments
                         spec:
+                          serviceAccountName: jenkins-sa
                           containers:
                           - name: kubectl
                             image: lachlanevenson/k8s-kubectl:latest
                             command:
                             - cat
                             tty: true
+                          resources:
+                            requests:
+                              cpu: "500m"
+                              memory: "512Mi"
+                            limits:
+                              cpu: "1000m"
+                              memory: "1Gi"
                     '''
                 }
             }
