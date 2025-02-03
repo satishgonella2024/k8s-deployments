@@ -66,7 +66,7 @@ pipeline {
                         kind: Pod
                         metadata:
                           name: jenkins-agent
-                          namespace: devsecops
+                          namespace: k8s-deployments
                         spec:
                           serviceAccountName: jenkins-sa
                           containers:
@@ -101,7 +101,7 @@ pipeline {
                         kubectl apply -f ${K8S_SERVICES_PATH}
                         
                         echo "Waiting for deployments to become ready..."
-                        kubectl rollout status deployment/nginx-deployment -n k8s-deployments
+                        kubectl rollout status deployment/nginx-deployment -n ${K8S_NAMESPACE}
                         
                         echo "Deployment successful!"
                     '''
