@@ -67,16 +67,26 @@ pipeline {
                         spec:
                           containers:
                           - name: kubectl
-                            image: bitnami/kubectl:latest
+                            image: lachlanevenson/k8s-kubectl:latest
                             command:
                             - cat
                             tty: true
+                          resources:
+                            requests:
+                              cpu: "500m"
+                              memory: "512Mi"
+                            limits:
+                              cpu: "1000m"
+                              memory: "1Gi"
                     '''
                 }
             }
             steps {
                 container('kubectl') {
                     sh '''
+                        echo "Checking kubectl version..."
+                        kubectl version --client
+                        
                         echo "Applying Kubernetes namespace..."
                         kubectl apply -f ${K8S_MANIFEST_PATH}/namespace.yaml
                         
