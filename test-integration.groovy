@@ -3,7 +3,7 @@ pipeline {
         label 'jenkins-agent'
     }
     
-   environment {
+    environment {
         SONAR_PROJECT_KEY = "k8s-deployments"
         IMAGE_TAG = "latest"
         K8S_NAMESPACE = "k8s-deployments"
@@ -17,38 +17,60 @@ pipeline {
         string(name: 'K8S_NAMESPACE', defaultValue: 'k8s-deployments', description: 'Kubernetes Namespace')
     }
 
-    
     stages {
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        echo "SonarQube Integration Test"
-                        echo "SonarQube URL: ${SONAR_HOST_URL}"
-                        curl -s -f -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/system/status"
-                        if [ $? -eq 0 ]; then
-                            echo "Successfully connected to SonarQube"
-                        else
-                            echo "Failed to connect to SonarQube"
-                            exit 1
-                        fi
-
-                        # Test SonarQube connection
-                        curl -s -f -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/system/status"
-                
-                        # Run SonarQube Scanner
-                        sonar-scanner \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                        -Dsonar.language=groovy \
-                        -Dsonar.sourceEncoding=UTF-8 \
-                        -Dsonar.login=${SONAR_TOKEN} \
-                        -Dsonar.projectName=${JOB_NAME} \
-                        -Dsonar.projectVersion=${BUILD_NUMBER} \
-                        -Dsonar.exclusions=**/test/**,**/target/**,**/.mvn/** \
-                        -Dsonar.java.binaries=.
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        spec:
+                          containers:
+                          - name: sonar-scanner
+                            image: sonarsource/sonar-scanner-cli:latest
+                            command:
+                            - cat
+                            tty: true
+                            resources:
+                              requests:
+                                memory: "512Mi"
+                                cpu: "500m"
+                              limits:
+                                memory: "1Gi"
+                                cpu: "1000m"
                     '''
+                }
+            }
+            steps {
+                container('sonar-scanner') {
+                    withSonarQubeEnv('SonarQube') {
+                        sh '''
+                            echo "SonarQube Integration Test"
+                            echo "SonarQube URL: ${SONAR_HOST_URL}"
+                            
+                            # Test SonarQube connection
+                            curl -s -f -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/system/status"
+                            if [ $? -eq 0 ]; then
+                                echo "Successfully connected to SonarQube"
+                            else
+                                echo "Failed to connect to SonarQube"
+                                exit 1
+                            fi
+                            
+                            # Run SonarQube Scanner
+                            sonar-scanner \
+                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                -Dsonar.sources=. \
+                                -Dsonar.host.url=${SONAR_HOST_URL} \
+                                -Dsonar.language=groovy \
+                                -Dsonar.sourceEncoding=UTF-8 \
+                                -Dsonar.login=${SONAR_TOKEN} \
+                                -Dsonar.projectName=${JOB_NAME} \
+                                -Dsonar.projectVersion=${BUILD_NUMBER} \
+                                -Dsonar.exclusions=**/test/**,**/target/**,**/.mvn/** \
+                                -Dsonar.java.binaries=.
+                        '''
+                    }
                 }
             }
         }
@@ -88,7 +110,6 @@ pipeline {
                         apiVersion: v1
                         kind: Pod
                         metadata:
-                          name: jenkins-agent
                           namespace: k8s-deployments
                         spec:
                           serviceAccountName: jenkins-sa
@@ -98,13 +119,13 @@ pipeline {
                             command:
                             - cat
                             tty: true
-                          resources:
-                            requests:
-                              cpu: "500m"
-                              memory: "512Mi"
-                            limits:
-                              cpu: "1000m"
-                              memory: "1Gi"
+                            resources:
+                              requests:
+                                cpu: "500m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "1Gi"
                     '''
                 }
             }
@@ -139,7 +160,6 @@ pipeline {
                         apiVersion: v1
                         kind: Pod
                         metadata:
-                          name: jenkins-agent
                           namespace: k8s-deployments
                         spec:
                           serviceAccountName: jenkins-sa
@@ -149,18 +169,18 @@ pipeline {
                             command:
                             - cat
                             tty: true
-                          resources:
-                            requests:
-                              cpu: "500m"
-                              memory: "512Mi"
-                            limits:
-                              cpu: "1000m"
-                              memory: "1Gi"
+                            resources:
+                              requests:
+                                cpu: "500m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "1Gi"
                     '''
                 }
             }
             steps {
-                container('kubectl') { // Ensure we use the correct container
+                container('kubectl') {
                     sh '''
                         echo "Deployment Report:"
                         kubectl get all -n ${K8S_NAMESPACE}
