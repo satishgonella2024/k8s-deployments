@@ -32,6 +32,22 @@ pipeline {
                             echo "Failed to connect to SonarQube"
                             exit 1
                         fi
+
+                        # Test SonarQube connection
+                        curl -s -f -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/system/status"
+                
+                        # Run SonarQube Scanner
+                        sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.language=groovy \
+                        -Dsonar.sourceEncoding=UTF-8 \
+                        -Dsonar.login=${SONAR_TOKEN} \
+                        -Dsonar.projectName=${JOB_NAME} \
+                        -Dsonar.projectVersion=${BUILD_NUMBER} \
+                        -Dsonar.exclusions=**/test/**,**/target/**,**/.mvn/** \
+                        -Dsonar.java.binaries=.
                     '''
                 }
             }
