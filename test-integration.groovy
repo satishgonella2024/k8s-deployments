@@ -3,13 +3,20 @@ pipeline {
         label 'jenkins-agent'
     }
     
-    environment {
+   environment {
         SONAR_PROJECT_KEY = "test-project"
+        IMAGE_TAG = "latest"
         K8S_NAMESPACE = "k8s-deployments"
         K8S_MANIFEST_PATH = "manifests"
         K8S_DEPLOYMENTS_PATH = "deployments"
         K8S_SERVICES_PATH = "services"
     }
+
+    parameters {
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker Image Tag')
+        string(name: 'K8S_NAMESPACE', defaultValue: 'k8s-deployments', description: 'Kubernetes Namespace')
+    }
+
     
     stages {
         stage('SonarQube Analysis') {
