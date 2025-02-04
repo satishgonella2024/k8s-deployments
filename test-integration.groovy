@@ -4,7 +4,7 @@ pipeline {
     }
     
    environment {
-        SONAR_PROJECT_KEY = "test-project"
+        SONAR_PROJECT_KEY = "k8s-deployments"
         IMAGE_TAG = "latest"
         K8S_NAMESPACE = "k8s-deployments"
         K8S_MANIFEST_PATH = "manifests"
