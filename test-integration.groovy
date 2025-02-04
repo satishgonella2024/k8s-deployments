@@ -44,32 +44,34 @@ pipeline {
             steps {
                 container('sonar-scanner') {
                     withSonarQubeEnv('SonarQube') {
-                        sh '''
-                            echo "SonarQube Integration Test"
-                            echo "SonarQube URL: ${SONAR_HOST_URL}"
-                            
-                            # Test SonarQube connection
-                            curl -s -f -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/system/status"
-                            if [ $? -eq 0 ]; then
-                                echo "Successfully connected to SonarQube"
-                            else
-                                echo "Failed to connect to SonarQube"
-                                exit 1
-                            fi
-                            
-                            # Run SonarQube Scanner
-                            sonar-scanner \
-                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                                -Dsonar.sources=. \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.language=groovy \
-                                -Dsonar.sourceEncoding=UTF-8 \
-                                -Dsonar.login=${SONAR_TOKEN} \
-                                -Dsonar.projectName=${JOB_NAME} \
-                                -Dsonar.projectVersion=${BUILD_NUMBER} \
-                                -Dsonar.exclusions=**/test/**,**/target/**,**/.mvn/** \
-                                -Dsonar.java.binaries=.
-                        '''
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            sh """
+                                echo "SonarQube Integration Test"
+                                echo "SonarQube URL: ${SONAR_HOST_URL}"
+                                
+                                # Test SonarQube connection
+                                curl -s -f -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/system/status"
+                                if [ \$? -eq 0 ]; then
+                                    echo "Successfully connected to SonarQube"
+                                else
+                                    echo "Failed to connect to SonarQube"
+                                    exit 1
+                                fi
+                                
+                                # Run SonarQube Scanner
+                                sonar-scanner \\
+                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+                                    -Dsonar.sources=. \\
+                                    -Dsonar.host.url=${SONAR_HOST_URL} \\
+                                    -Dsonar.language=groovy \\
+                                    -Dsonar.sourceEncoding=UTF-8 \\
+                                    -Dsonar.token=${SONAR_TOKEN} \\
+                                    -Dsonar.projectName=${JOB_NAME} \\
+                                    -Dsonar.projectVersion=${BUILD_NUMBER} \\
+                                    -Dsonar.exclusions=**/test/**,**/target/**,**/.mvn/** \\
+                                    -Dsonar.java.binaries=.
+                            """
+                        }
                     }
                 }
             }
@@ -88,6 +90,13 @@ pipeline {
                             command:
                             - cat
                             tty: true
+                            resources:
+                              requests:
+                                memory: "512Mi"
+                                cpu: "500m"
+                              limits:
+                                memory: "1Gi"
+                                cpu: "1000m"
                     '''
                 }
             }
