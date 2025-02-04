@@ -18,7 +18,7 @@ pipeline {
     }
 
     stages {
-        stage('Apply Kubernetes Manifests') {
+        stage('Apply Namespace & ServiceAccount') {
             agent {
                 kubernetes {
                     yaml '''
@@ -47,24 +47,69 @@ pipeline {
             steps {
                 container('kubectl') {
                     sh '''
-                        echo "Checking kubectl version..."
-                        kubectl version --client
-                        
                         echo "Applying Kubernetes namespace..."
                         kubectl apply -f ${K8S_MANIFEST_PATH}/namespace.yaml
-                        
-                        echo "Applying Kubernetes deployments..."
-                        kubectl apply -f ${K8S_DEPLOYMENTS_PATH}
 
+                        echo "Applying Jenkins service account..."
+                        kubectl apply -f ${K8S_MANIFEST_PATH}/jenkins-sa-binding.yaml
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Blue-Green') {
+            steps {
+                container('kubectl') {
+                    sh '''
+                        echo "Deploying Blue-Green Strategy..."
+                        kubectl apply -f ${K8S_DEPLOYMENTS_PATH}/nginx-blue-green.yaml
+                        kubectl rollout status deployment/nginx-blue -n ${K8S_NAMESPACE}
+                        kubectl rollout status deployment/nginx-green -n ${K8S_NAMESPACE}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Canary') {
+            steps {
+                container('kubectl') {
+                    sh '''
+                        echo "Deploying Canary Strategy..."
+                        kubectl apply -f ${K8S_DEPLOYMENTS_PATH}/nginx-canary.yaml
+                        kubectl rollout status deployment/nginx-canary -n ${K8S_NAMESPACE}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Stable Release') {
+            steps {
+                container('kubectl') {
+                    sh '''
+                        echo "Deploying Stable Release..."
+                        kubectl apply -f ${K8S_DEPLOYMENTS_PATH}/nginx-deployment.yaml
+                        kubectl rollout status deployment/nginx-deployment -n ${K8S_NAMESPACE}
+                    '''
+                }
+            }
+        }
+
+        stage('Apply Kubernetes Services') {
+            steps {
+                container('kubectl') {
+                    sh '''
                         echo "Applying Kubernetes services..."
                         kubectl apply -f ${K8S_SERVICES_PATH}
-                        
-                        echo "Waiting for deployments to become ready..."
-                        kubectl rollout status deployment/nginx-deployment -n ${K8S_NAMESPACE}
-                        
-                        echo "Deployment successful!"
+                    '''
+                }
+            }
+        }
 
-                        echo "Deployment Report:"
+        stage('Deployment Report') {
+            steps {
+                container('kubectl') {
+                    sh '''
+                        echo "Fetching Deployment Report..."
                         kubectl get all -n ${K8S_NAMESPACE}
                     '''
                 }
@@ -78,10 +123,10 @@ pipeline {
             echo "Cleanup completed"
         }
         success {
-            echo 'Pipeline succeeded! Kubernetes deployment completed successfully.'
+            echo '✅ Pipeline succeeded! Kubernetes deployment completed successfully.'
         }
         failure {
-            echo 'Pipeline failed! Check logs for errors.'
+            echo '❌ Pipeline failed! Check logs for errors.'
         }
     }
 }
