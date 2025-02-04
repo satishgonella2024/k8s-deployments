@@ -58,6 +58,31 @@ pipeline {
         }
 
         stage('Deploy Blue-Green') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        metadata:
+                          namespace: k8s-deployments
+                        spec:
+                          serviceAccountName: jenkins-sa
+                          containers:
+                          - name: kubectl
+                            image: lachlanevenson/k8s-kubectl:latest
+                            command:
+                            - cat
+                            tty: true
+                            resources:
+                              requests:
+                                cpu: "200m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "512Mi"
+                    '''
+                }
+            }
             steps {
                 container('kubectl') {
                     sh '''
@@ -71,6 +96,31 @@ pipeline {
         }
 
         stage('Deploy Canary') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        metadata:
+                          namespace: k8s-deployments
+                        spec:
+                          serviceAccountName: jenkins-sa
+                          containers:
+                          - name: kubectl
+                            image: lachlanevenson/k8s-kubectl:latest
+                            command:
+                            - cat
+                            tty: true
+                            resources:
+                              requests:
+                                cpu: "200m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "512Mi"
+                    '''
+                }
+            }
             steps {
                 container('kubectl') {
                     sh '''
@@ -83,6 +133,31 @@ pipeline {
         }
 
         stage('Deploy Stable Release') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        metadata:
+                          namespace: k8s-deployments
+                        spec:
+                          serviceAccountName: jenkins-sa
+                          containers:
+                          - name: kubectl
+                            image: lachlanevenson/k8s-kubectl:latest
+                            command:
+                            - cat
+                            tty: true
+                            resources:
+                              requests:
+                                cpu: "200m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "512Mi"
+                    '''
+                }
+            }
             steps {
                 container('kubectl') {
                     sh '''
@@ -95,6 +170,31 @@ pipeline {
         }
 
         stage('Apply Kubernetes Services') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        metadata:
+                          namespace: k8s-deployments
+                        spec:
+                          serviceAccountName: jenkins-sa
+                          containers:
+                          - name: kubectl
+                            image: lachlanevenson/k8s-kubectl:latest
+                            command:
+                            - cat
+                            tty: true
+                            resources:
+                              requests:
+                                cpu: "200m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "512Mi"
+                    '''
+                }
+            }
             steps {
                 container('kubectl') {
                     sh '''
@@ -106,6 +206,31 @@ pipeline {
         }
 
         stage('Deployment Report') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        metadata:
+                          namespace: k8s-deployments
+                        spec:
+                          serviceAccountName: jenkins-sa
+                          containers:
+                          - name: kubectl
+                            image: lachlanevenson/k8s-kubectl:latest
+                            command:
+                            - cat
+                            tty: true
+                            resources:
+                              requests:
+                                cpu: "200m"
+                                memory: "512Mi"
+                              limits:
+                                cpu: "1000m"
+                                memory: "512Mi"
+                    '''
+                }
+            }
             steps {
                 container('kubectl') {
                     sh '''
