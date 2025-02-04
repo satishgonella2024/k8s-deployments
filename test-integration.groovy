@@ -18,7 +18,6 @@ pipeline {
     }
 
     stages {
-        
         stage('Apply Kubernetes Manifests') {
             agent {
                 kubernetes {
@@ -64,13 +63,7 @@ pipeline {
                         kubectl rollout status deployment/nginx-deployment -n ${K8S_NAMESPACE}
                         
                         echo "Deployment successful!"
-                    '''
-                }
-            }
-        
-            steps {
-                container('kubectl') {
-                    sh '''
+
                         echo "Deployment Report:"
                         kubectl get all -n ${K8S_NAMESPACE}
                     '''
